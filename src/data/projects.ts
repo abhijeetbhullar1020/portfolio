@@ -66,8 +66,6 @@ export const projects: Project[] = [
   {
     slug: "ai-saas-dashboard",
     title: "AI SaaS Dashboard",
-    thumbnail: "/projects/ai-saas-dashboard/thumbnail.jpg",
-    banner: "/projects/ai-saas-dashboard/banner.jpg",
     category: "SaaS",
     categories: ["SaaS", "UI Design", "Frontend Development"],
     shortDescription:
