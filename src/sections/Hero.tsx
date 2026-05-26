@@ -1,12 +1,53 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { MouseEvent, useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { TextReveal, FloatLayer } from "@/animations/wrappers";
 import { EASE_PREMIUM } from "@/lib/utils";
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isCursorInside, setIsCursorInside] = useState(false);
+  const indicatorX = useMotionValue(0);
+  const indicatorY = useMotionValue(0);
+  const indicatorOpacity = useMotionValue(0);
+  const indicatorSpringX = useSpring(indicatorX, {
+    stiffness: 260,
+    damping: 30,
+  });
+  const indicatorSpringY = useSpring(indicatorY, {
+    stiffness: 260,
+    damping: 30,
+  });
+
+  const handleMouseEnter = () => {
+    setIsCursorInside(true);
+  };
+
+  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    indicatorX.set(x);
+    indicatorY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    setIsCursorInside(false);
+  };
+
+  useEffect(() => {
+    indicatorOpacity.set(isCursorInside ? 1 : 0);
+
+    if (!isCursorInside && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      indicatorX.set(rect.width / 2);
+      indicatorY.set(rect.height / 2);
+    }
+  }, [indicatorOpacity, indicatorX, indicatorY, isCursorInside]);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
@@ -21,7 +62,10 @@ export default function Hero() {
   return (
     <section
       ref={containerRef}
-      className="noise-overlay relative flex h-[100svh] min-h-[640px] w-full items-center justify-center overflow-hidden bg-background pt-24"
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="noise-overlay relative flex h-[100svh] min-h-[640px] w-full items-center justify-center overflow-hidden bg-background pt-24 lg:cursor-none"
     >
       {/* Animated gradient glow */}
       <motion.div
@@ -121,7 +165,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.85, ease: EASE_PREMIUM }}
-          className="relative z-20 mt-10 max-w-2xl text-center md:mt-12"
+          className="relative z-20 mt-10 max-w-2xl text-center md:mt-10"
         >
           <h2 className="text-display-lg mb-4 text-2xl font-bold tracking-tighter md:text-3xl">
             <TextReveal delay={0.9}>Web & UI/UX</TextReveal>{" "}
@@ -135,10 +179,10 @@ export default function Hero() {
 
       {/* Scroll indicator */}
       <motion.div
+        aria-hidden="true"
+        style={{ x: indicatorSpringX, y: indicatorSpringY, opacity: indicatorOpacity }}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.6, duration: 1 }}
-        className="absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-3"
+        className="absolute left-0 top-0 hidden lg:flex pointer-events-none z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-3"
       >
         <span className="text-label text-foreground/40">Scroll</span>
         <motion.div
